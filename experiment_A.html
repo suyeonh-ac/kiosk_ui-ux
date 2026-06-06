@@ -219,7 +219,7 @@ kbd{background:var(--bdr);color:var(--muted);padding:2px 6px;border-radius:4px;f
     <div class="pid-logo">LAB</div>
     <div class="pid-title">실험 시작</div>
     <div class="pid-sub">진행자에게 받은 피험자 번호를 입력하세요.<br>이 번호는 사전 설문과 연결됩니다.</div>
-    <input class="pid-input" id="pid-input" type="text" maxlength="10" placeholder="P01" oninput="onPID()">
+    <input class="pid-input" id="pid-input" type="text" maxlength="10" placeholder="P01" oninput="this.value=this.value.toUpperCase();onPID()">
     <button class="pid-btn" id="pid-btn" onclick="startExp()" disabled>실험 시작 →</button>
     <div class="pid-meta">버전 A · 키오스크 6회 · SUS 설문 2회</div>
   </div>
