@@ -526,7 +526,7 @@ kbd{background:var(--bdr);color:var(--muted);padding:2px 6px;border-radius:4px;f
 const VERSION='B';
 const SUS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz9306dq8unX3PZkA3tjm58OYeqSA1doIQRIzoTXXd88LkRO7FvDqSDKorf6ROcLbU3/exec';
 const B64_MAP=JSON.parse(document.getElementById("b64-data").textContent);
-const PHASES=[{"type":"kiosk","id":"ph-k1","frame_id":"fr-k1","ktype":"나열형","mission_key":"easy1","mission_num":1,"keywords":["아메리카노"],"opt_keywords":["ICE","Regular"],"keywords_multi":[]},{"type":"rest","id":"ph-r1","arc_id":"arc-ph-r1","num_id":"rnum-ph-r1"},{"type":"kiosk","id":"ph-k2","frame_id":"fr-k2","ktype":"나열형","mission_key":"hard1","mission_num":2,"keywords":["얼그레이"],"opt_keywords":["HOT","Grande","크림","타피오카펄"],"keywords_multi":[]},{"type":"rest","id":"ph-r2","arc_id":"arc-ph-r2","num_id":"rnum-ph-r2"},{"type":"kiosk","id":"ph-k3","frame_id":"fr-k3","ktype":"나열형","mission_key":"mixed1","mission_num":3,"keywords":[],"opt_keywords":[],"keywords_multi":[["카라멜마끼아또","HOT","Grande","디카페인","덜 달게","헤이즐넛시럽"],["망고 스무디","Regular"],["크로플"]]},{"type":"sus","id":"ph-s1","sus_num":1,"ktype":"나열형"},{"type":"kiosk","id":"ph-k4","frame_id":"fr-k4","ktype":"트리형","mission_key":"easy2","mission_num":4,"keywords":["녹차"],"opt_keywords":["HOT","Grande"],"keywords_multi":[]},{"type":"rest","id":"ph-r3","arc_id":"arc-ph-r3","num_id":"rnum-ph-r3"},{"type":"kiosk","id":"ph-k5","frame_id":"fr-k5","ktype":"트리형","mission_key":"hard2","mission_num":5,"keywords":["유자차"],"opt_keywords":["HOT","Grande","텀블러","바닐라시럽"],"keywords_multi":[]},{"type":"rest","id":"ph-r4","arc_id":"arc-ph-r4","num_id":"rnum-ph-r4"},{"type":"kiosk","id":"ph-k6","frame_id":"fr-k6","ktype":"트리형","mission_key":"mixed2","mission_num":6,"keywords":[],"opt_keywords":[],"keywords_multi":[["바닐라라떼","HOT","Venti","싱글오리진","텀블러","1샷 추가"],["청포도 에이드","Grande"],["소금빵"]]},{"type":"sus","id":"ph-s2","sus_num":2,"ktype":"트리형"}];
+const PHASES=[{"type":"kiosk","id":"ph-k1","frame_id":"fr-k1","ktype":"나열형","mission_key":"easy1","mission_num":1,"keywords":["아메리카노"],"opt_keywords":["ICE","Regular"],"keywords_multi":[]},{"type":"rest","id":"ph-r1","arc_id":"arc-ph-r1","num_id":"rnum-ph-r1"},{"type":"kiosk","id":"ph-k2","frame_id":"fr-k2","ktype":"나열형","mission_key":"hard1","mission_num":2,"keywords":["얼그레이 바닐라 티 라떼"],"opt_keywords":["HOT","Grande","크림","타피오카펄"],"keywords_multi":[]},{"type":"rest","id":"ph-r2","arc_id":"arc-ph-r2","num_id":"rnum-ph-r2"},{"type":"kiosk","id":"ph-k3","frame_id":"fr-k3","ktype":"나열형","mission_key":"mixed1","mission_num":3,"keywords":[],"opt_keywords":[],"keywords_multi":[["카라멜마끼아또","HOT","Grande","디카페인","덜 달게","헤이즐넛시럽"],["망고 스무디","Regular"],["크로플"]]},{"type":"sus","id":"ph-s1","sus_num":1,"ktype":"나열형"},{"type":"kiosk","id":"ph-k4","frame_id":"fr-k4","ktype":"트리형","mission_key":"easy2","mission_num":4,"keywords":["녹차"],"opt_keywords":["HOT","Grande"],"keywords_multi":[]},{"type":"rest","id":"ph-r3","arc_id":"arc-ph-r3","num_id":"rnum-ph-r3"},{"type":"kiosk","id":"ph-k5","frame_id":"fr-k5","ktype":"트리형","mission_key":"hard2","mission_num":5,"keywords":["유자차"],"opt_keywords":["HOT","Grande","텀블러","바닐라시럽"],"keywords_multi":[]},{"type":"rest","id":"ph-r4","arc_id":"arc-ph-r4","num_id":"rnum-ph-r4"},{"type":"kiosk","id":"ph-k6","frame_id":"fr-k6","ktype":"트리형","mission_key":"mixed2","mission_num":6,"keywords":[],"opt_keywords":[],"keywords_multi":[["바닐라라떼","HOT","Venti","싱글오리진","텀블러","1샷 추가"],["청포도 에이드","Grande"],["소금빵"]]},{"type":"sus","id":"ph-s2","sus_num":2,"ktype":"트리형"}];
 let curIdx=-1,globalPID='',restTimer=null;
 const SUS_ANS={},allResults=[],phaseTimings={},missionResults={},trackingResults={};
 
@@ -644,13 +644,11 @@ function itemNameText(item){
   return (item?.name||'').toLowerCase();
 }
 function nameHasKeyword(name, keyword){
-  const rawName=(name||'').toLowerCase();
-  const rawKw=(keyword||'').toLowerCase();
-  if(!rawKw) return true;
-  const idx=rawName.indexOf(rawKw);
-  if(idx===-1) return false;
-  const after=rawName.slice(idx+rawKw.length);
-  return !after || after[0]===' ';
+  // normalize 후 완전 일치만 허용 - '녹차'와 '녹차 라떼' 구분
+  const nameN=normalizeForCheck(name||'');
+  const kwN=normalizeForCheck(keyword||'');
+  if(!kwN) return true;
+  return nameN===kwN;
 }
 function checkItemAgainstKeywords(item, kwGroup, missionOptKeywords){
   const text=itemTextForCheck(item);
@@ -672,7 +670,7 @@ function checkItemAgainstKeywords(item, kwGroup, missionOptKeywords){
   if(missionOptKeywords && missionOptKeywords.length>0 && missing.length===0){
     const BASIC=['regular','하우스블랜드','선택안함','기본','기본당도'];
     const missionOpts=missionOptKeywords.map(o=>normalizeForCheck(o));
-    const tokens=(item?.optionsText||'').split(/[,\s]+/)
+    const tokens=(item?.optionsText||'').split(',')
       .map(t=>normalizeForCheck(t)).filter(Boolean);
     const extras=tokens.filter(tok=>{
       if(!tok||BASIC.some(b=>tok.includes(b))) return false;
