@@ -614,6 +614,40 @@ function itemTextForCheck(item){
     item?.name, item?.optionsText, item?.optionText, item?.options, item?.temp, item?.category
   ].filter(Boolean).join(' '));
 }
+function nameHasKeyword(name, keyword){
+  // 나열형은 name이 '(ice) 녹차', '(hot) 아메리카노' 형태 → 접두어 제거 후 normalize 완전 일치
+  const cleanName=(name||'').toLowerCase().replace(/^\(ice\)\s*|\(hot\)\s*/,'').trim();
+  const nameN=normalizeForCheck(cleanName);
+  const kwN=normalizeForCheck(keyword||'');
+  if(!kwN) return true;
+  return nameN===kwN;
+}
+function checkItemAgainstKeywords(item, kwGroup, missionOptKeywords){
+  const text=itemTextForCheck(item);
+  const missing=[];
+  const SIZE_TEMP=['hot','ice','regular','grande','venti'];
+  kwGroup.forEach(k=>{
+    const kn=normalizeForCheck(k);
+    if(SIZE_TEMP.includes(kn)){
+      if(!optionKeywordOK(text,k,item)) missing.push(k);
+    } else {
+      const inName=nameHasKeyword(item?.name||'',k);
+      const inOpt=normalizeForCheck(item?.optionsText||'').includes(kn);
+      if(!inName&&!inOpt) missing.push(k);
+    }
+  });
+  if(missionOptKeywords&&missionOptKeywords.length>0&&missing.length===0){
+    const BASIC=['regular','하우스블랜드','선택안함','기본','기본당도'];
+    const missionOpts=missionOptKeywords.map(o=>normalizeForCheck(o));
+    const tokens=(item?.optionsText||'').split(',').map(t=>normalizeForCheck(t)).filter(Boolean);
+    const extras=tokens.filter(tok=>{
+      if(!tok||BASIC.some(b=>tok.includes(b))) return false;
+      return !missionOpts.some(mo=>tok.includes(mo)||mo.includes(tok));
+    });
+    if(extras.length>0) missing.push('미션외옵션:'+extras.join(','));
+  }
+  return {ok:missing.length===0, missing, text, price:Number(item?.price)||0};
+}
 function inferGrandeFromPrice(item, text){
   // 가격 추론 제거 - optionsText에 명시된 경우만 인정
   if(text.includes('grande'))return true;
@@ -624,64 +658,25 @@ function optionKeywordOK(text, keyword, item){
   const k=normalizeForCheck(keyword);
   if(!k)return true;
   if(text.includes(k))return true;
-  // 온도는 상품명에서 (hot)/(ice)가 들어오지만, 누락 시 HOT은 기본값으로 보정
-  if(k==='hot')return !text.includes('ice');
-  if(k==='ice')return text.includes('ice');
-  // 장바구니에서 생략되는 기본 옵션 보정
+  const itemName=(item?.name||'').toLowerCase();
+  if(k==='hot'){
+    if(itemName.includes('(hot)')) return true;
+    if(itemName.includes('(ice)')) return false;
+    return !text.includes('ice');
+  }
+  if(k==='ice'){
+    if(itemName.includes('(ice)')) return true;
+    if(itemName.includes('(hot)')) return false;
+    return text.includes('ice');
+  }
   if(k==='regular')return !(text.includes('grande')||text.includes('venti'));
-  if(k==='grande')return inferGrandeFromPrice(item,text);
-  if(k==='하우스블랜드')return !(text.includes('싱글오리진')||text.includes('디카페인'));
-  if(k==='기본당도')return !text.includes('덜달게');
-  if(k==='선택안함')return !text.includes('텀블러');
-  // 표기 흔들림 보정
-  if(k==='덜달게')return text.includes('덜달게');
-  if(k==='1샷추가')return text.includes('1샷추가')||text.includes('1샷');
-  if(k==='크림추가')return text.includes('크림추가')||text.includes('크림');
-  if(k==='텀블러')return text.includes('텀블러')||text.includes('개인컵');
+  if(k==='grande')return text.includes('grande');
   return false;
 }
-function itemNameText(item){
-  return (item?.name||'').toLowerCase();
-}
-function nameHasKeyword(name, keyword){
-  // normalize 후 완전 일치만 허용 - '녹차'와 '녹차 라떼' 구분
-  const nameN=normalizeForCheck(name||'');
-  const kwN=normalizeForCheck(keyword||'');
-  if(!kwN) return true;
-  return nameN===kwN;
-}
-function checkItemAgainstKeywords(item, kwGroup, missionOptKeywords){
+function checkItemAgainstKeywords(item, kwGroup){
   const text=itemTextForCheck(item);
   const missing=[];
-  const SIZE_TEMP=['hot','ice','regular','grande','venti'];
-
-  kwGroup.forEach(k=>{
-    const kn=normalizeForCheck(k);
-    if(SIZE_TEMP.includes(kn)){
-      if(!optionKeywordOK(text,k,item)) missing.push(k);
-    } else {
-      // 상품명: 공백 기반 단어 경계 매칭
-      const inName=nameHasKeyword(item?.name||'', k);
-      // optionsText: 기존 포함 매칭
-      const optText=normalizeForCheck(item?.optionsText||'');
-      const inOpt=optText.includes(kn);
-      if(!inName && !inOpt) missing.push(k);
-    }
-  });
-
-  // 미션 외 옵션 체크
-  if(missionOptKeywords && missionOptKeywords.length>0 && missing.length===0){
-    const BASIC=['regular','하우스블랜드','선택안함','기본','기본당도'];
-    const missionOpts=missionOptKeywords.map(o=>normalizeForCheck(o));
-    const tokens=(item?.optionsText||'').split(',')
-      .map(t=>normalizeForCheck(t)).filter(Boolean);
-    const extras=tokens.filter(tok=>{
-      if(!tok||BASIC.some(b=>tok.includes(b))) return false;
-      return !missionOpts.some(mo=>tok.includes(mo)||mo.includes(tok));
-    });
-    if(extras.length>0) missing.push('미션외옵션:'+extras.join(','));
-  }
-
+  kwGroup.forEach(k=>{ if(!optionKeywordOK(text,k,item)) missing.push(k); });
   return {ok:missing.length===0, missing, text, price:Number(item?.price)||0};
 }
 function checkMissionDetailed(p,cart){
