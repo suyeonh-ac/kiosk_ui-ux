@@ -335,11 +335,11 @@ input[type="number"] { width: 120px; }
         <div class="section-body">
             <div class="field" id="field-pid">
                 <div class="field-label">피험자 ID<span class="req">*</span>
-                    <span style="font-size:11px; font-weight:normal; color:var(--text-muted); margin-left:8px;">예: P01, P02 …</span>
+                    <span style="font-size:11px; font-weight:normal; color:var(--text-muted); margin-left:8px;">예: 1, 2, 3 ...</span>
                 </div>
-                <input type="text" id="pid" maxlength="10" placeholder="예) P01" oninput="this.value=this.value.toUpperCase();answers.pid = this.value.trim(); updateProgress();" style="width:180px; font-size:18px; font-weight:bold; letter-spacing:2px; text-align:center;">
+                <input type="text" id="pid" maxlength="10" placeholder="예) 1" oninput="answers.pid = this.value.trim(); updateProgress();" style="width:180px; font-size:18px; font-weight:bold; letter-spacing:2px; text-align:center;">
                 <div class="error-msg" id="err-pid">피험자 ID를 입력해 주세요</div>
-                <div class="field-hint" style="margin-top:2px;">이 ID는 SUS 설문과 연결하는 데 사용됩니다. 실험 전 진행자에게 확인하세요.</div>
+                <div class="field-hint" style="margin-top:2px;">실험 진행자가 안내한 피험자 번호를 입력해 주세요.</div>
             </div>
         </div>
     </div>
