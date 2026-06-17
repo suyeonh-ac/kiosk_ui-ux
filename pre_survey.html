@@ -373,11 +373,6 @@ input[type="number"] { width: 120px; }
                         <div class="choice-marker"></div>
                         <div class="choice-text">여성</div>
                     </label>
-                    <label class="choice-item" onclick="selectRadio('gender', '응답하지 않음', this)">
-                        <input type="radio" name="gender" value="응답하지 않음">
-                        <div class="choice-marker"></div>
-                        <div class="choice-text">응답하지 않음</div>
-                    </label>
                 </div>
                 <div class="error-msg" id="err-gender">성별을 선택해 주세요</div>
             </div>
@@ -521,7 +516,7 @@ input[type="number"] { width: 120px; }
 
     <!-- Submit -->
     <div class="submit-area" id="submitArea">
-        <div class="submit-info">모든 응답은 익명으로 처리되며 연구 목적 외에는 사용되지 않습니다.<br>제출하면 JSON 파일이 자동으로 저장됩니다.</div>
+        <div class="submit-info">모든 응답은 익명으로 처리되며 연구 목적 외에는 사용되지 않습니다.<br>응답 내용은 연구 데이터로만 활용됩니다.</div>
         <button class="submit-btn" id="submitBtn" onclick="submitForm()">설문 제출하기</button>
         <div class="required-note"><span style="color:#E53E3E;">*</span> 표시된 항목은 필수 응답 항목입니다</div>
     </div>
@@ -536,9 +531,8 @@ input[type="number"] { width: 120px; }
         <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">응답해 주셔서 감사합니다.<br>실험 진행자의 안내에 따라 다음 단계로 진행해 주세요.</p>
     </div>
     <div class="complete-card">
-        <h3>📋 응답 요약</h3>
+        <h3>📋 응답이 정상적으로 제출되었습니다</h3>
         <ul id="summaryList"></ul>
-        <button class="download-btn" onclick="downloadAgain()">💾 JSON 파일 다시 저장</button>
     </div>
 </div>
 
@@ -716,25 +710,9 @@ function submitForm() {
 
     lastResult = result;
     sendToSheets(result);
-    downloadJSON(result);
     showComplete(result);
 }
 
-function downloadJSON(result) {
-    const dateStr = new Date().toISOString().slice(0,19).replace(/:/g,'-');
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
-    const a = document.createElement('a');
-    a.setAttribute("href", dataStr);
-    const pid = result.participant_id || 'unknown';
-    a.setAttribute("download", `PreSurvey_${pid}_${dateStr}.json`);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-}
-
-function downloadAgain() {
-    if (lastResult) downloadJSON(lastResult);
-}
 
 function showComplete(result) {
     document.getElementById('formScreen').style.display = 'none';
