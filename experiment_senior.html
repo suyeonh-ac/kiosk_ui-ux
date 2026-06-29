@@ -563,11 +563,11 @@ let curIdx=-1,globalPID='',restTimer=null,VERSION='',missionOrder=null;
 let currentMissionClickCount=0;
 
 //==미션별 제한시간 설정 =====================================
-const MISSION_TIME_LIMIT_SEC = 60;   // 기본 제한시간(초). 0이면 무제한
+const MISSION_TIME_LIMIT_SEC = 120;   // 기본 제한시간(초). 0이면 무제한
 const MISSION_TIME_LIMIT_BY_KEY = {
-  easy1: 28, easy2: 46,    // 트리형 저 / 나열형 저  (대학생 90th percentile × 2)
-  hard1: 84, hard2: 66,    // 트리형 중 / 나열형 중
-  mixed1: 100, mixed2: 96  // 트리형 고 / 나열형 고
+  easy1: 120, easy2: 120,
+  hard1: 120, hard2: 120,
+  mixed1: 120, mixed2: 120
 };
 function getMissionTimeLimit(p){
   const k = p && p.mission_key;
