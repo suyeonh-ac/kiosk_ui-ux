@@ -672,12 +672,13 @@ function validateAll() {
 
 // ── Google Sheets 전송 ──────────────────────────────
 // Apps Script 배포 후 아래 URL을 교체하세요
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9306dq8unX3PZkA3tjm58OYeqSA1doIQRIzoTXXd88LkRO7FvDqSDKorf6ROcLbU3/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1fej29kKLAX70-Pgt6bFuS0FgPAb8rwSR6vQwVUVOsq6GHLqI_cqt3BF4DLKpkq57/exec';
 
 function sendToSheets(data) {
     const flat = {
         participant_id:    data.participant_id,
         timestamp:         data.timestamp,
+        group:             'elderly',
         birth_date:        data.demographics.birth_date,
         gender:            data.demographics.gender,
         kiosk_freq:        data.kiosk_usage.frequency,
