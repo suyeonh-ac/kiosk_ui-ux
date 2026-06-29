@@ -107,9 +107,61 @@ kbd{background:var(--bdr);color:var(--muted);padding:2px 6px;border-radius:4px;f
 .ms-item + .ms-item { border-top-color: #e5e7eb !important; }
 .ms-hint  { color: #9ca3af !important; opacity: 1 !important; }
 
+/* 시간초과 팝업 */
+#timeout-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.65);
+  align-items: center; justify-content: center;
+}
+#timeout-overlay.show { display: flex; }
+#timeout-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 44px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  animation: popIn 0.25s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+#timeout-icon { font-size: 52px; margin-bottom: 12px; }
+#timeout-title {
+  font-size: 26px; font-weight: 900;
+  color: #DC2626; margin-bottom: 10px;
+}
+#timeout-body {
+  font-size: 17px; color: #374151; line-height: 1.7; margin-bottom: 28px;
+}
+#timeout-btn {
+  padding: 14px 40px;
+  background: #0369A1; color: white;
+  border: none; border-radius: 10px;
+  font-size: 18px; font-weight: bold;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.15s;
+}
+#timeout-btn:hover { background: #024F7A; }
+#timeout-countdown {
+  font-size: 15px; color: #6B7280; margin-top: 20px;
+}
+
 </style>
 </head>
 <body>
+
+<!-- 시간초과 팝업 -->
+<div id="timeout-overlay">
+  <div id="timeout-box">
+    <div id="timeout-icon">⏰</div>
+    <div id="timeout-title">시간이 종료되었습니다</div>
+    <div id="timeout-countdown">5초 후 다음 미션 화면으로 넘어갑니다.</div>
+  </div>
+</div>
 <div class="topbar">
   <div class="tb-left">
     <div class="tb-logo">LAB</div>
@@ -955,9 +1007,35 @@ window.addEventListener('message',e=>{
     downloadMissionTrackingJSON(p, tracking, cart, success, missionCheck);
    missionResults[p.id]={success,timed_out:timedOut,cart,tabLog,mission_check:missionCheck,tracking_summary:{records:tracking.records.length,backgrounds:Object.keys(tracking.backgrounds).length},phase:p.id,mission_key:p.mission_key,mission_num:p.mission_num,ktype:p.ktype,difficulty:p.difficulty,sequence_num:p.sequence_num,...clickMetrics};
    showMissionResult(p.id,success,cart);
-    setTimeout(nextPhase,800);
+    if(timedOut){
+      showTimeoutPopup();
+    } else {
+      setTimeout(nextPhase,800);
+    }
   }
 });
+
+function dismissTimeout(){
+  document.getElementById('timeout-overlay').classList.remove('show');
+  setTimeout(nextPhase, 300);
+}
+
+function showTimeoutPopup(){
+  const overlay = document.getElementById('timeout-overlay');
+  const countdownEl = document.getElementById('timeout-countdown');
+  overlay.classList.add('show');
+  let rem = 5;
+  countdownEl.textContent = `${rem}초 후 다음 화면으로 넘어갑니다.`;
+  const tick = setInterval(() => {
+    rem--;
+    if(rem <= 0){
+      clearInterval(tick);
+      dismissTimeout();
+    } else {
+      countdownEl.textContent = `${rem}초 후 다음 화면으로 넘어갑니다.`;
+    }
+  }, 1000);
+}
 
    function selLk(sn,qi,val,el){
   const sc=document.getElementById(`s${sn}q${qi}`);
