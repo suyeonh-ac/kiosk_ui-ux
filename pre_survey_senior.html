@@ -365,8 +365,8 @@ input[type="date"] {
             <div class="field" id="field-birthdate">
                 <div class="field-label">생년월일 (YYYY-MM-DD)<span class="req">*</span></div>
                 <div class="field-hint">캘린더를 눌러 선택해 주세요</div>
-                <input type="date" id="birthDate" min="1950-01-01" max="2010-12-31" oninput="onBirthDateInput()">
-                <div class="error-msg" id="err-birthdate">생년월일을 올바르게 입력해 주세요 (1950~2010년, 오늘 이전 날짜)</div>
+                <input type="date" id="birthDate" min="1930-01-01" max="1980-12-31" oninput="onBirthDateInput()">
+                <div class="error-msg" id="err-birthdate">생년월일을 올바르게 입력해 주세요 (1930~1980년, 오늘 이전 날짜)</div>
             </div>
             <div class="field" id="field-gender">
                 <div class="field-label">성별<span class="req">*</span></div>
@@ -618,7 +618,7 @@ function validateAll() {
         todayDate.setHours(0,0,0,0);
         const bdYear = bdDate.getFullYear();
         const isPastOrToday = bdDate.getTime() <= todayDate.getTime();
-        const isInRange = bdYear >= 1950 && bdYear <= 2010;
+        const isInRange = bdYear >= 1930 && bdYear <= 1980;
         bdValid = !isNaN(bdDate.getTime()) && isPastOrToday && isInRange;
     }
     if (!bdValid) {
